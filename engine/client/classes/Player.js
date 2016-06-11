@@ -128,7 +128,7 @@ Player.prototype.move = function () {
         "hand_right": that.hands.left.position
     };
 
-    socket.emit('move player', positions);
+    socket.emit('move player', that);
 };
 
 Player.prototype.render = function () {

@@ -72,6 +72,10 @@ Server.prototype.updateState = function (state) {
     return that.game;
 };
 
+Server.prototype.updatePlayer = function (player) {
+  var that = this;
+};
+
 var server = new Server();
 //------------------------------------------------------------------------------------------------
 
@@ -81,7 +85,7 @@ io.on('connection', function (socket) {
         io.emit('chat message', msg);
     });
     socket.on('move player', function (msg) {
-        console.log(msg);
+    //    console.log(msg);
     });
     socket.on("game connect", function (msg) {
         var player = server.connectToGame();

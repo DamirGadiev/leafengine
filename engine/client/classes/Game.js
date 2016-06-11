@@ -7,8 +7,10 @@
 var Game = function () {
     this.name = 'Book';
     this.scene = {};
-    this.user = {};
+    this.user = false;
     this.container = {};
+    this.players = [];
+    this.players_array = [];
 };
 
 Game.prototype.addScene = function () {
@@ -90,17 +92,29 @@ Game.prototype.render = function () {
     var render = function () {
         requestAnimationFrame(render);
         that.update();
-        that.user.motion();
-        that.setFocus(that.user.mesh);
+        if (that.user && that.user != {} && typeof that.user.motion == 'function') {
+            that.user.motion();
+            that.setFocus(that.user.mesh);
+        }
         that.renderer.render(that.scene, that.camera);
     };
     render();
 };
 
 Game.prototype.update = function () {
+    var that = this;
     socket.emit("update state");
-    socket.on("update state", function (game) {
-        console.log(game);
+    socket.on("update state", function (server_state) {
+        var players = server_state.users;
+        if (players.length !== 0 && that.user !== false) {
+            for (var i in players) {
+                if (players[i].id !== that.user.id) {
+                    if (that.players_array.length == 0 || that.players_array.indexOf(players[i].id) == -1) {
+                        that.addGhostPlayer(players[i]);
+                    }
+                }
+            }
+        }
     });
 };
 
@@ -116,15 +130,50 @@ Game.prototype.addWorld = function () {
     this.world.levelInit();
 };
 
-Game.prototype.addPlayer = function () {
+Game.prototype.addPlayer = function (player) {
     var that = this;
-    var user = new Player(that.scene);
+    var user = false;
+    console.log(player);
+    console.log(that.user == false);
+    console.log("added regular");
+    // Check if player is host and add uuid to each player.
+    if (player.id && that.user == false) {
+        user = new Player(that.scene, player.id);
+        user.render();
+        console.log("jee");
+    }
+    else {
+         console.error("No player to add");
+         console.trace();
+    }
+    if (user !== false) {
+        that.user = user;
+        return true;
+    }
+    return false;
+};
+
+Game.prototype.addGhostPlayer = function (player) {
+    var that = this,
+        user = false;
+    console.log(player);
+    // Check if player is host and add uuid to each player.
+    user = new Player(that.scene, player.id);
     user.render();
-    this.user = user;
-    socket.emit('add user');
+
+    //else {
+      //  console.error("No player to add")
+    //}
+    if (user !== false) {
+        console.log("added ghost");
+        that.players.push(user);
+        that.players_array.push(player.id)
+    }
+    return false;
 };
 
 Game.prototype.addPlayers = function () {
+    var that = this;
 };
 
 Game.prototype.setContainer = function () {
@@ -132,7 +181,6 @@ Game.prototype.setContainer = function () {
 };
 
 Game.prototype.setControls = function () {
-    'use strict';
     // Within jQuery's methods, we won't be able to access "this"
     var user = this.user,
     // State of the different controls
@@ -237,20 +285,20 @@ Game.prototype.setSocket = function () {
 
 Game.prototype.init = function () {
     // Start game server loop
+    var that = this;
     socket.emit("game connect");
     socket.on("game connect", function (player) {
-        console.log(player);
+        console.log("again called");
+        that.addPlayer(player);
+        that.setFocus(that.user.mesh);
+        that.setControls();
     });
     this.addScene();
     this.addCamera();
     this.addLight();
     this.addRenderer();
-    // this.addControls();
-    this.addPlayer();
     this.setContainer();
     this.setAspect();
-    this.setFocus(this.user.mesh);
-    this.setControls();
     this.setSocket();
 };
 
