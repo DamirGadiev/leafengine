@@ -24,6 +24,13 @@ app.get('/', function (req, res) {
 var Player = function () {
     this.host = false;
     this.id = UUID();
+    this.mesh = [];
+    this.rotation = [];
+    this.feet_left = [];
+    this.feet_right = [];
+    this.hand_left = [];
+    this.hand_right = [];
+
 };
 
 //Set host property
@@ -67,8 +74,22 @@ Server.prototype.joinGame = function () {
     return player;
 };
 
+Server.prototype.movePlayer = function (player) {
+     var that = this;
+     for (var i in that.game.users) {
+         if (that.game.users[i].id == player.id) {
+             var old_values = that.game.users[i];
+             that.game.users[i] = player;
+             that.game.users[i].host = old_values.host;
+         }
+     }
+    console.log(that.game.users);
+    //that.updateState({});
+};
+
 Server.prototype.updateState = function (state) {
     var that = this;
+    console.log(that.game.users);
     return that.game;
 };
 
@@ -81,11 +102,17 @@ var server = new Server();
 
 // Socket server part
 io.on('connection', function (socket) {
+   // console.log(socket);
     socket.on('chat message', function (msg) {
         io.emit('chat message', msg);
     });
     socket.on('move player', function (msg) {
-    //    console.log(msg);
+        //console.log("move fired");
+        server.movePlayer(msg);
+    });
+    socket.on('rotate player', function (msg) {
+        console.log("rotate fired");
+        server.movePlayer(msg);
     });
     socket.on("game connect", function (msg) {
         var player = server.connectToGame();

@@ -4,6 +4,10 @@
  */
 'use strict';
 
+/**
+ * Main game client-holder class.
+ * @constructor
+ */
 var Game = function () {
     this.name = 'Book';
     this.scene = {};
@@ -13,11 +17,19 @@ var Game = function () {
     this.players_array = [];
 };
 
+/**
+ * Add scene
+ * Wrapper around three.js scene object.
+ */
 Game.prototype.addScene = function () {
     this.scene = new THREE.Scene();
     console.log("BOOK:: scene initiated...");
 };
 
+/**
+ * Add camera
+ * Wrapper around three.js camera actions
+ */
 Game.prototype.addCamera = function () {
 
     //aspect ratio
@@ -87,30 +99,74 @@ Game.prototype.addControls = function () {
     this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 };
 
+/**
+ * Game render method, main client game loop lives here.
+ */
 Game.prototype.render = function () {
+    // Save game object.
     var that = this;
     var render = function () {
+        // Time loop
         requestAnimationFrame(render);
+        // Call scene updates to render them.
         that.update();
         if (that.user && that.user != {} && typeof that.user.motion == 'function') {
+            // Process user motion.
             that.user.motion();
+            // Set focus to current user.
             that.setFocus(that.user.mesh);
         }
+        // Render updated scene.
         that.renderer.render(that.scene, that.camera);
     };
     render();
 };
 
 Game.prototype.update = function () {
+    // Save game object.
     var that = this;
+    // Emit socket event update state.
     socket.emit("update state");
+    // Catch socket event update state.
     socket.on("update state", function (server_state) {
+        // Process game state returned from server
+        // and get available players.
         var players = server_state.users;
+       // console.log("UPDADE: servers state", server_state);
+        // Check if we alerady have players
+        // and game contains current user.
         if (players.length !== 0 && that.user !== false) {
+            // Traverse those players.
             for (var i in players) {
+                // If player returned from server is not current user.
                 if (players[i].id !== that.user.id) {
+                    // Check if there are no players in game or if they are, but not with current uuid.
                     if (that.players_array.length == 0 || that.players_array.indexOf(players[i].id) == -1) {
+                        // Add ghosts to game and render them.
                         that.addGhostPlayer(players[i]);
+                    }
+                    for (var j in that.players) {
+                        if (that.players[j].id == players[i].id) {
+                            //@TODO: add more clear way of setting possitions.
+                            that.players[j].mesh.rotation._x = players[i].rotation._x;
+                            that.players[j].mesh.rotation._y = players[i].rotation._y;
+                            that.players[j].mesh.rotation._z = players[i].rotation._z;
+                            that.players[j].mesh.position.x = players[i].mesh.x;
+                            that.players[j].mesh.position.y = players[i].mesh.y;
+                            that.players[j].mesh.position.z = players[i].mesh.z;
+                            that.players[j].feet.left.position.x = players[i].feet_left.x;
+                            that.players[j].feet.left.position.y = players[i].feet_left.y;
+                            that.players[j].feet.left.position.z = players[i].feet_left.z;
+                            that.players[j].feet.right.position.x = players[i].feet_right.x;
+                            that.players[j].feet.right.position.y = players[i].feet_right.y;
+                            that.players[j].feet.right.position.z = players[i].feet_right.z;
+                            that.players[j].hands.left.position.x = players[i].hand_left.x;
+                            that.players[j].hands.left.position.y = players[i].hand_left.y;
+                            that.players[j].hands.left.position.z = players[i].hand_left.z;
+                            that.players[j].hands.right.position.x = players[i].hand_right.x;
+                            that.players[j].hands.right.position.y = players[i].hand_right.y;
+                            that.players[j].hands.right.position.z = players[i].hand_right.z;
+                        }
                     }
                 }
             }
@@ -131,22 +187,28 @@ Game.prototype.addWorld = function () {
 };
 
 Game.prototype.addPlayer = function (player) {
+    console.log("ADD_PLAYER:method called");
     var that = this;
     var user = false;
+    console.log("ADD_PLAYER:player object");
+    console.log("====================================================");
     console.log(player);
+    console.log("====================================================");
     console.log(that.user == false);
-    console.log("added regular");
     // Check if player is host and add uuid to each player.
     if (player.id && that.user == false) {
+        console.log("ADD_PLAYER:id and game main player exists");
         user = new Player(that.scene, player.id);
+        console.log("ADD_PLAYER:new player created", user);
         user.render();
-        console.log("jee");
+        console.log("ADD_PLAYER:new player renderred");
     }
     else {
-         console.error("No player to add");
+         console.error("ADD_PLAYER:No player to add");
          console.trace();
     }
     if (user !== false) {
+        console.log("ADD_PLAYER:current player successfully created and added to game");
         that.user = user;
         return true;
     }
@@ -154,10 +216,16 @@ Game.prototype.addPlayer = function (player) {
 };
 
 Game.prototype.addGhostPlayer = function (player) {
+    console.log("ADD_GHOST:method called");
     var that = this,
         user = false;
+
+    console.log("ADD_GHOST:player object");
+    console.log("====================================================");
     console.log(player);
+    console.log("====================================================");
     // Check if player is host and add uuid to each player.
+    console.log("ADD_GHOST:add new player object to scene");
     user = new Player(that.scene, player.id);
     user.render();
 
@@ -165,9 +233,11 @@ Game.prototype.addGhostPlayer = function (player) {
       //  console.error("No player to add")
     //}
     if (user !== false) {
-        console.log("added ghost");
+        console.log("ADD_GHOST:player succesfully created and added to game.");
         that.players.push(user);
-        that.players_array.push(player.id)
+        console.log("ADD_GHOST:players pool", that.players);
+        that.players_array.push(player.id);
+        console.log("ADD_GHOST:players array pool", that.players_array);
     }
     return false;
 };
@@ -259,7 +329,7 @@ Game.prototype.setControls = function () {
 // Defining the renderer's size
 Game.prototype.setAspect = function () {
     'use strict';
-    console.log(this);
+    console.log("SET_ASPECT:game object passed to aspect", this);
     var that = this;
     // Fit the container's full width
     var w = that.container.width(),
@@ -282,13 +352,16 @@ Game.prototype.setSocket = function () {
     this.io = io();
 };
 
-
+/**
+ * Init methods
+ */
 Game.prototype.init = function () {
     // Start game server loop
     var that = this;
+    console.log("INIT:game start, creating game connect event...");
     socket.emit("game connect");
     socket.on("game connect", function (player) {
-        console.log("again called");
+        console.log("INIT: game connect socket called");
         that.addPlayer(player);
         that.setFocus(that.user.mesh);
         that.setControls();

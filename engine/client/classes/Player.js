@@ -8,6 +8,7 @@ var Player = function (scene, id) {
     this.id = id;
     this.scene = scene;
     this.position = new THREE.Vector3(0, 0, 0);
+    this.host = false;
 };
 
 Player.prototype.init = function (args) {
@@ -102,6 +103,18 @@ Player.prototype.rotate = function () {
         // We slightly get closer to it
         this.mesh.rotation.y += difference / 4;
     }
+    var that = this;
+    var positions = {
+        "id": that.id,
+        "host": that.host,
+        "rotation": that.mesh.rotation,
+        "mesh": that.mesh.position,
+        "feet_left": that.feet.left.position,
+        "feet_right": that.feet.right.position,
+        "hand_left": that.hands.left.position,
+        "hand_right": that.hands.left.position
+    };
+    socket.emit('rotate player', positions);
 };
 
 Player.prototype.move = function () {
@@ -121,14 +134,16 @@ Player.prototype.move = function () {
     var that = this;
 
     var positions = {
+        "id": that.id,
+        "host": that.host,
+        "rotation": that.mesh.rotation,
         "mesh": that.mesh.position,
         "feet_left": that.feet.left.position,
         "feet_right": that.feet.right.position,
         "hand_left": that.hands.left.position,
         "hand_right": that.hands.left.position
     };
-
-    socket.emit('move player', that);
+    socket.emit('move player', positions);
 };
 
 Player.prototype.render = function () {
@@ -136,4 +151,8 @@ Player.prototype.render = function () {
     that.init({color: 'blue'});
     console.log("here");
     that.scene.add(this.mesh);
+};
+
+Player.prototype.update = function () {
+  //
 };
