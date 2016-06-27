@@ -12,6 +12,7 @@ app.use('/engine/client/core', express.static(__dirname + '/engine/client/core')
 app.use('/engine/client/classes', express.static(__dirname + '/engine/client/classes'));
 app.use('/engine/client/routines', express.static(__dirname + '/engine/client/routines'));
 app.use('/assets', express.static(__dirname + '/engine/client/assets'));
+app.use('/cube', express.static(__dirname + '/engine/client/assets/TropicalSunnyDay'));
 app.use('/map', express.static(__dirname + '/engine/client/map'));
 
 // Prepare output to main entry point.
@@ -89,7 +90,7 @@ Server.prototype.movePlayer = function (player) {
 
 Server.prototype.updateState = function (state) {
     var that = this;
-    console.log(that.game.users);
+    //console.log(that.game.users);
     return that.game;
 };
 

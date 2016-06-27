@@ -37,13 +37,14 @@ Game.prototype.addCamera = function () {
         aspect = window.innerWidth / window.innerHeight,
         d = 50;
 
-    var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
+
+    var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
     console.log("BOOK:: camera initiated...");
 
-    camera.position.set(-400, 400, 400);
+    camera.position.set(-200, 200, 200);
     camera.rotation.order = 'YXZ';
-    camera.rotation.y = -Math.PI / 4;
-    camera.rotation.x = Math.atan(-1 / Math.sqrt(2));
+    camera.rotation.y = -Math.PI / 2;
+    camera.rotation.x = Math.atan(-1 / Math.sqrt(5));
 
     that.camera = camera;
 };
@@ -57,17 +58,17 @@ Game.prototype.addLight = function () {
         directionalLight.castShadow = true;
         //add to scene
         var spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(100, 1000, 100);
+        spotLight.position.set(100, 100, 100);
         spotLight.castShadow = true;
         spotLight.shadow.mapSize.width = 1024;
         spotLight.shadow.mapSize.height = 1024;
 
-        spotLight.shadow.camera.near = 500;
+        spotLight.shadow.camera.near = 10;
         spotLight.shadow.camera.far = 4000;
         spotLight.shadow.camera.fov = 30;
 
         that.scene.add(spotLight);
-        // that.scene.add(ambientLight);
+        that.scene.add(ambientLight);
         that.scene.add(directionalLight);
     }
 };

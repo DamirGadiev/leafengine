@@ -10,6 +10,34 @@ var World = function (game, level) {
     this.ground = {};
 };
 
+World.prototype.createSkybox = function(){
+    var that = this;
+
+    var cubeloader = new THREE.CubeTextureLoader();
+
+    // Create cube itself.
+    var urlPrefix	= "../cube/";
+    var urls = [ urlPrefix + "negx.png", urlPrefix + "posx.png",
+        urlPrefix + "posz.png", urlPrefix + "negz.png",
+        urlPrefix + "posy.png", urlPrefix + "negx.png" ];
+    var textureCube	= cubeloader.load( urls );
+    console.log(textureCube);
+
+    var shader = THREE.ShaderLib['cube']; console.log(shader);
+    shader.uniforms["tCube"].value = textureCube;
+    var material = new THREE.ShaderMaterial({
+        fragmentShader	: shader.fragmentShader,
+        vertexShader	: shader.vertexShader,
+        uniforms	: shader.uniforms,
+        side: THREE.BackSide
+    });
+
+    var skyboxMesh	= new THREE.Mesh( new THREE.CubeGeometry( 2000, 2000, 2000, 1, 1, 1, null, true ), material );
+    that.game.scene.add(skyboxMesh);
+
+    console.log(material);
+};
+
 World.prototype.createGround = function () {
     // just to save link to world itself;
     var that = this;
@@ -106,6 +134,7 @@ World.prototype.loadMap = function () {
 
 World.prototype.levelInit = function () {
     this.loadMap();
+    this.createSkybox();
     this.createGround();
     //this.addTrees();
     //this.addHouse();

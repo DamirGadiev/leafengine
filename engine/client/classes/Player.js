@@ -112,7 +112,7 @@ Player.prototype.rotate = function () {
         "feet_left": that.feet.left.position,
         "feet_right": that.feet.right.position,
         "hand_left": that.hands.left.position,
-        "hand_right": that.hands.left.position
+        "hand_right": that.hands.right.position
     };
     socket.emit('rotate player', positions);
 };
@@ -141,7 +141,7 @@ Player.prototype.move = function () {
         "feet_left": that.feet.left.position,
         "feet_right": that.feet.right.position,
         "hand_left": that.hands.left.position,
-        "hand_right": that.hands.left.position
+        "hand_right": that.hands.right.position
     };
     socket.emit('move player', positions);
 };
